@@ -335,3 +335,82 @@ main {
     border-radius: 30px;
     margin-top: 20px;
 }
+
+
+
+/* About us Section */
+
+.about-us {
+    width: 100%;
+    min-height: 100vh;
+    padding: 6rem 5rem;
+    background-color: #000000;
+    color: #000;
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}
+
+.about-us  .left,.about-us  .right {
+    width: 50%;
+}
+.about-us .left img {
+    max-width: 100%;
+}
+
+.about-us .right  .sub-heading {
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+}
+
+.about-us .right .sub-heading .line {
+    width: 30px;
+    height: 2px;
+    background-color: yellowgreen;
+    display: inline-block;
+}
+
+.about-us .right h3{
+    font-size: 60px;
+    font-weight: 600;
+    margin-bottom: 30px;
+}
+.about-us .right h3 span{
+    font-size: 60px;
+    font-weight: 600;
+    color: yellowgreen;
+}
+
+.about-us .right .about-info {
+    font-size: 18px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.about-us .right ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 50px;
+}
+
+.about-us .right ul li {
+    font-size: 20px;
+    font-weight: 300;
+}
+
+
+
+.about-us .right .about-btn {
+    color: #000;
+    font-size: 16px;
+    padding: 12px 24px;
+    background-color: yellowgreen;
+    border-radius: 50px;
+    border: none;
+    font-weight: 600;
+}
