@@ -15,6 +15,9 @@
  font-weight: 400;
  font-family: "Labil Grotesk";
 }
+html {
+    scroll-behavior: smooth;
+}
  html, body {
  width: 100%;
  height: 100%;
@@ -118,7 +121,6 @@ main {
 
 .hero-section {
     width: 100%;
-    height: 100vh;
     padding: 0 1rem;
 }
 
@@ -184,7 +186,7 @@ main {
     .col-12 {
     width: 100%;
     display: grid;
-    grid-template-rows: repeat(7, 120px);
+    grid-template-rows: repeat(5, 120px);
     grid-template-columns: repeat(5, 1fr);
 }
 
@@ -200,8 +202,136 @@ main {
         grid-column-start: 8;
         grid-row-start: 6;
         grid-row-end: 5;
+        padding: 32px 28px;
+        width: 231px;
+        font-size: 20px;
     }
 }
 
+.bottom {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 48px;
+    padding-top: 20px;
+}
 
+.bottom .left h5 {
+    font-size: clamp(1.2rem,2.5vw,227px);
+    line-height: 140%;
+    letter-spacing: -1%;
+    margin-bottom: 10px;
+
+}
+.bottom .left a,
+.bottom p {
+    font-size: clamp(0.9rem,1.5vw,20px);
+    line-height: 24px;
+    letter-spacing: -1%;
+    color: #000;
+}
+@media (min-width: 768px) {
+    .bottom p {
+        width: 471px;
+    }
+}
 /* End Hero Section */
+
+
+
+/* Projects Section */
+
+.projects-section {
+    width: 100%;
+    height: 100vh;
+    padding: 4rem 1rem 2rem 1rem;
+}
+
+.project-header {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.project-head-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.project-head-section h4 {
+    font-size: clamp(24px, 2.5vw, 48px);
+    line-height: 130%;
+    letter-spacing: -1%;
+}
+.project-head-section a {
+    font-size: clamp(14px, 1.5vw, 20px);
+    line-height: 140%;
+    letter-spacing: -1%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.project-header p {
+         font-size: clamp(14px, 1.5vw, 20px);
+    }
+
+@media (min-width: 767px) {
+
+    .projects-section {
+        padding: 9rem 5rem 2rem 5rem;
+    }
+    .project-header p {
+        width: 392px;
+    }
+    
+}
+
+
+/* project cards */
+
+.cards {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    position: relative;
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
+
+.cards .card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    gap: 10px;
+    margin-bottom: 20px;
+
+}
+
+.cards .card .card-img {
+    width: 100%;
+}
+.cards .card .card-img img {
+    max-width: 100%;
+}
+
+.cards .card .card-info h5{
+    font-size: 20px;
+    line-height: 140%;
+    letter-spacing: -1%;
+}
+
+.cards .card .card-info p{
+    font-size: 16px;
+    line-height: 140%;
+    letter-spacing: -1%;
+}
+
+@media (min-width: 768px) {
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
