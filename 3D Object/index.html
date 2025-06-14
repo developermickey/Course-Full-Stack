@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Scroll Physics Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            /* Prevent horizontal scrollbars */
+            margin: 0;
+        }
+
+        #threeCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Place canvas behind content */
+            outline: none;
+        }
+
+        /* Ensure main content is scrollable and visible */
+        main {
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            min-height: 100vh;
+            /* Make sections tall enough to ensure scrolling */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        /* Custom message box for alerts */
+        .custom-message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 10000;
+            display: none;
+            /* Hidden by default */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-size: 1rem;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-gray-900 text-white">
+
+    <canvas id="threeCanvas"></canvas>
+    <div id="customMessageBox" class="custom-message-box"></div>
+
+    <main class="container mx-auto px-4">
+        <section class="text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">Dynamic 3D Scroll</h1>
+            <p class="text-xl md:text-2xl text-gray-300">Scroll down to see the objects react with physics.</p>
+            <div class="mt-8 animate-bounce">
+                <svg class="w-10 h-10 text-blue-400 mx-auto" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </div>
+        </section>
+
+        <section class="text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">Interactive Background</h2>
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                The 3D shapes are simulated using a physics engine. Your scroll position influences their movement,
+                creating a lively and interactive backdrop.
+            </p>
+        </section>
+
+        <section class="text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">Three.js & Cannon.js</h2>
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                This demonstration utilizes Three.js for 3D rendering and Cannon.js for the physics calculations,
+                showcasing how these libraries can be combined for compelling web experiences.
+            </p>
+        </section>
+
+        <section class="text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">Explore Further</h2>
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                Try scrolling up and down at different speeds to observe how the objects respond. The interaction is
+                designed to be fluid and engaging.
+            </p>
+        </section>
+        <section class="text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">End of Content</h2>
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
+                You've reached the end of the scrollable area.
+            </p>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+
+    <script>
+        // --- Custom Message Box ---
+        const messageBox = document.getElementById('customMessageBox');
+        function showMessage(message, duration = 3000) {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        // --- Global Variables ---
+        let scene, camera, renderer, world;
+        const objectsToUpdate = []; // To store { mesh, body } pairs
+        let scrollPercent = 0;
+        const clock = new THREE.Clock(); // For consistent physics updates
+
+        // --- Initialization ---
+        function init() {
+            try {
+                // Three.js Setup
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(0, 5, 25); // Adjusted camera position
+                camera.lookAt(0, 2, 0); // Look slightly higher than origin
+
+                renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threeCanvas'), antialias: true, alpha: true });
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(0x000000, 0); // Transparent background for canvas
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Softer ambient light
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2); // Stronger directional light
+                directionalLight.position.set(5, 10, 7.5);
+                directionalLight.castShadow = true; // Optional: for shadows
+                scene.add(directionalLight);
+
+                // Cannon.js Setup
+                world = new CANNON.World();
+                world.gravity.set(0, -9.82, 0); // Standard gravity
+                world.broadphase = new CANNON.NaiveBroadphase(); // Efficient broadphase
+                world.solver.iterations = 10; // Solver iterations for accuracy
+
+                // Materials for Cannon.js (for friction, restitution)
+                const defaultMaterial = new CANNON.Material('default');
+                const groundMaterial = new CANNON.Material('ground');
+                const defaultContactMaterial = new CANNON.ContactMaterial(
+                    groundMaterial,
+                    defaultMaterial,
+                    {
+                        friction: 0.3,      // How much friction
+                        restitution: 0.4    // How bouncy (0=not, 1=perfectly)
+                    }
+                );
+                world.addContactMaterial(defaultContactMaterial);
+
+                // Ground Plane (Physics)
+                const groundShape = new CANNON.Plane();
+                const groundBody = new CANNON.Body({ mass: 0, material: groundMaterial }); // mass 0 makes it static
+                groundBody.addShape(groundShape);
+                groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2); // Rotate to be horizontal
+                groundBody.position.set(0, -2, 0); // Position the ground plane slightly lower
+                world.addBody(groundBody);
+
+                // Optional: Visual Ground Plane (Three.js) - for debugging or if needed
+                // const groundGeometry = new THREE.PlaneGeometry(50, 50);
+                // const groundMeshMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, side: THREE.DoubleSide });
+                // const groundMesh = new THREE.Mesh(groundGeometry, groundMeshMaterial);
+                // groundMesh.rotation.x = -Math.PI / 2;
+                // groundMesh.position.y = -2;
+                // scene.add(groundMesh);
+
+                // Create 3D Objects (Cubes and Spheres)
+                const numObjects = 15;
+                const objectSize = 1; // Base size for objects
+
+                for (let i = 0; i < numObjects; i++) { // 'i' is scoped here
+                    let mesh, body, shape;
+                    const randomColor = new THREE.Color(Math.random() * 0xffffff);
+                    const material = new THREE.MeshStandardMaterial({
+                        color: randomColor,
+                        metalness: 0.3,
+                        roughness: 0.6
+                    });
+
+                    const initialX = (Math.random() - 0.5) * 15;
+                    const initialY = Math.random() * 8 + 4; // Start higher up
+                    const initialZ = (Math.random() - 0.5) * 15 - 5; // Slightly further back
+
+                    if (Math.random() > 0.5) { // Create a Box
+                        const halfExtents = new CANNON.Vec3(objectSize * 0.5, objectSize * 0.5, objectSize * 0.5);
+                        shape = new CANNON.Box(halfExtents);
+                        mesh = new THREE.Mesh(new THREE.BoxGeometry(objectSize, objectSize, objectSize), material);
+                    } else { // Create a Sphere
+                        const radius = objectSize * 0.6;
+                        shape = new CANNON.Sphere(radius);
+                        mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 32, 32), material);
+                    }
+
+                    mesh.castShadow = true; // Optional
+
+                    body = new CANNON.Body({
+                        mass: 1, // Give objects some mass
+                        position: new CANNON.Vec3(initialX, initialY, initialZ),
+                        shape: shape,
+                        material: defaultMaterial
+                    });
+
+                    // Add slight random initial angular velocity
+                    body.angularVelocity.set(
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2
+                    );
+
+
+                    world.addBody(body);
+                    scene.add(mesh);
+                    objectsToUpdate.push({ mesh, body, originalIndex: i }); // Store originalIndex if needed elsewhere, or use forEach index
+                }
+
+                // Event Listeners
+                window.addEventListener('scroll', handleScroll);
+                window.addEventListener('resize', onWindowResize);
+
+                // Initial call to set scrollPercent
+                handleScroll();
+
+                // Start animation loop
+                animate();
+                showMessage("3D Scene Initialized! Scroll to interact.", 3000);
+
+            } catch (error) {
+                console.error("Initialization Error:", error);
+                showMessage("Error initializing 3D scene. Check console.", 5000);
+            }
+        }
+
+        // --- Event Handlers ---
+        function handleScroll() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            scrollPercent = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
+        }
+
+        function onWindowResize() {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const deltaTime = clock.getDelta(); // Time since last frame
+
+            // Step the physics world with a fixed timestep if possible, or use deltaTime
+            // Using a fixed timestep is generally better for physics stability
+            world.step(1 / 60, deltaTime, 3); // (fixedTimeStep, timeSinceLastCalled, maxSubSteps)
+
+            objectsToUpdate.forEach((obj, index) => { // Added 'index' parameter here
+                const { mesh, body } = obj;
+
+                // Copy position and quaternion from Cannon.js body to Three.js mesh
+                mesh.position.copy(body.position);
+                mesh.quaternion.copy(body.quaternion);
+
+                // Apply scroll-dependent force
+                // This force tries to lift objects based on scroll position
+                const targetY = scrollPercent * 15 + 2; // Objects try to reach Y from 2 to 17
+                const currentY = body.position.y;
+                const diffY = targetY - currentY;
+
+                // Proportional force to move towards targetY, scaled by mass
+                // Make it stronger to overcome gravity more easily
+                const liftForceValue = diffY * body.mass * 8;
+
+                // Apply a gentle random horizontal "nudge" to make it more dynamic
+                // Reduce nudge frequency or magnitude if too chaotic
+                const nudgeStrength = body.mass * 0.5;
+                // Use 'index' from forEach instead of the out-of-scope 'i'
+                const nudgeX = (Math.random() - 0.5) * nudgeStrength * (Math.sin(performance.now() * 0.001 * index) * 0.5 + 0.5);
+                const nudgeZ = (Math.random() - 0.5) * nudgeStrength * (Math.cos(performance.now() * 0.001 * index) * 0.5 + 0.5);
+
+
+                // Apply forces
+                body.applyForce(new CANNON.Vec3(nudgeX, liftForceValue, nudgeZ), body.position);
+
+                // Apply damping if objects are too jittery or move too fast
+                // Cannon.js materials handle some damping via friction/restitution
+                // body.velocity.scale(0.98, body.velocity); // Example manual damping
+                // body.angularVelocity.scale(0.98, body.angularVelocity);
+            });
+
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        // --- Start ---
+        // Wait for DOM content to be fully loaded before initializing
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init(); // DOMContentLoaded has already fired
+        }
+
+    </script>
+</body>
+
+</html>

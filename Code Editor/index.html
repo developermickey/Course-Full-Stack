@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Code Runner</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="controls">
+      <label for="language">Language:</label>
+      <select id="language">
+        <option value="71" data-ext="python">Python</option>
+        <option value="63" data-ext="javascript">JavaScript</option>
+        <option value="62" data-ext="java">Java</option>
+        <option value="54" data-ext="cpp">C++</option>
+      </select>
+    </div>
+
+    <div id="editor" class="editor"></div>
+
+    <textarea id="input" placeholder="Enter custom input..."></textarea>
+    <textarea id="expected" placeholder="Enter expected output (for test case match)..."></textarea>
+
+    <button id="runCode">Run Code</button>
+
+    <pre id="output">Output will appear here...</pre>
+    <pre id="verdict"></pre>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
